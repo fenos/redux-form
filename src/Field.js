@@ -24,7 +24,7 @@ const createField = ({ deepEqual, getIn, setIn }) => {
     }
 
     componentWillMount() {
-      this.context._reduxForm.register(this.name, 'Field')
+      this.context._reduxForm.register(this.name, 'Field',this.props.validate)
     }
 
     componentWillReceiveProps(nextProps) {
@@ -92,7 +92,8 @@ const createField = ({ deepEqual, getIn, setIn }) => {
     component: PropTypes.oneOfType([ PropTypes.func, PropTypes.string ]).isRequired,
     defaultValue: PropTypes.any,
     normalize: PropTypes.func,
-    props: PropTypes.object
+    props: PropTypes.object,
+    validate: PropTypes.func,
   }
   Field.contextTypes = {
     _reduxForm: PropTypes.object

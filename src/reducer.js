@@ -139,14 +139,14 @@ const createReducer = structure => {
       result = setIn(result, 'initial', mapData)
       return result
     },
-    [REGISTER_FIELD](state, { payload: { name, type } }) {
+    [REGISTER_FIELD](state, { payload: { name, type, validate } }) {
       let result = state
       const registeredFields = getIn(result, 'registeredFields')
       if (some(registeredFields, (field) => getIn(field, 'name') === name)) {
         return state
       }
-
-      const mapData = fromJS({ name, type })
+      
+      const mapData = fromJS({ name, type, validate })
       result = setIn(state, 'registeredFields', splice(registeredFields, size(registeredFields), 0, mapData))
       return result
     },

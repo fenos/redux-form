@@ -122,10 +122,26 @@ const createReduxForm =
             }
           }
 
+          validateFieldsErrors(values) {
+            const { registeredFields } = this.props
+            return registeredFields.reduce((errObj,field) => {
+              const validate = getIn(field, 'validate');
+              if (typeof validate === 'function') {
+                const name = getIn(field,'name');
+                const error = validate(values[name]);
+                if (typeof error === 'string') {
+                  errObj[name] = error;
+                }
+              }
+              return errObj;
+            }, {});
+          }
+
           updateSyncErrorsIfNeeded(nextSyncErrors) {
             const { syncErrors, updateSyncErrors } = this.props
             const noErrors = !syncErrors || !Object.keys(syncErrors).length
             const nextNoErrors = !nextSyncErrors || !Object.keys(nextSyncErrors).length
+
             if (!(noErrors && nextNoErrors) && !plain.deepEqual(syncErrors, nextSyncErrors)) {
               updateSyncErrors(nextSyncErrors)
             }
@@ -133,17 +149,20 @@ const createReduxForm =
 
           validateIfNeeded(nextProps) {
             const { validate, values } = this.props
+
             if (validate) {
               if (nextProps) {
                 // not initial render
                 if (!deepEqual(values, nextProps.values)) {
                   const nextSyncErrors = validate(nextProps.values, nextProps)
-                  this.updateSyncErrorsIfNeeded(nextSyncErrors)
+                  const fieldNoErrors = this.validateFieldsErrors(nextProps.values)
+                  this.updateSyncErrorsIfNeeded({...nextSyncErrors, ...fieldNoErrors})
                 }
               } else {
                 // initial render
                 const nextSyncErrors = validate(values, this.props)
-                this.updateSyncErrorsIfNeeded(nextSyncErrors)
+                const fieldNoErrors = this.validateFieldsErrors(values)
+                this.updateSyncErrorsIfNeeded({...nextSyncErrors, ...fieldNoErrors})
               }
             }
           }
@@ -188,8 +207,8 @@ const createReduxForm =
             return this.props.pristine
           }
 
-          register(name, type) {
-            this.props.registerField(name, type)
+          register(name, type, validate) {
+            this.props.registerField(name, type, validate)
           }
 
           unregister(name) {

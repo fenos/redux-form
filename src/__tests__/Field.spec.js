@@ -700,6 +700,53 @@ const describeField = (name, structure, combineReducers, expect) => {
       expect(usernameInput.calls[ 2 ].arguments[ 0 ].error).toBe(undefined)
     })
   })
+
+  it.only('allow to specify validation on the Field component', () => {
+      const store = makeStore({
+        testForm: {
+          values: {
+            username: 'redux-form',
+          }
+        }
+      })
+      const usernameInput = createSpy(props => <input {...props.input}/>).andCallThrough()
+      const validateFn = value => {
+        if (!value) {
+          return 'Required';
+        }
+      }
+      class Form extends Component {
+        render() {
+          return (<div>
+            <Field name="username" component={usernameInput} validate={validateFn} />
+          </div>)
+        }
+      }
+      const TestForm = reduxForm({
+        form: 'testForm',
+        validate: s => {}
+      })(Form)
+    
+      TestUtils.renderIntoDocument(
+        <Provider store={store}>
+          <TestForm/>
+        </Provider>
+      )
+
+      // username input rendered
+      expect(usernameInput).toHaveBeenCalled()
+      expect(usernameInput.calls.length).toBe(1)
+
+      // username field is valid becasue initialized with a value
+      expect(usernameInput.calls[ 0 ].arguments[ 0 ].valid).toBe(true)
+
+      // update username field so it passes
+      usernameInput.calls[ 0 ].arguments[ 0 ].input.onChange('')
+
+      // shouldn't be valid now
+      expect(usernameInput.calls[ 0 ].arguments[ 0 ].error).toBe('Required')
+      expect(usernameInput.calls[ 0 ].arguments[ 0 ].valid).toBe(false)
+  })
 }
 
 describeField('Field.plain', plain, plainCombineReducers, addExpectations(plainExpectations))
